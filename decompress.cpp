@@ -9,8 +9,13 @@
 
 void decompress(const std::string& file_path, const std::string& output_path) {
     std::ifstream input{file_path, std::ios::binary};
-    unsigned long long byte_total = 0;
+    // 读取压缩文件标记并核对
+    char identifier[8];
+    input.read(identifier, 8);
+    if (std::string(identifier) != "HUFFMAN")
+        throw std::runtime_error("Not compressed file");
     // 读取原始文件字节总数
+    unsigned long long byte_total = 0;
     char total[8];
     input.read(total, 8);
     for (int i = 7; i >= 0; i--)

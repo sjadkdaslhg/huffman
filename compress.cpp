@@ -63,6 +63,9 @@ void compress(const std::string& file_path, const std::string& output_path) {
     std::shared_ptr<Node> root = buildTree(pair.first);
     std::vector<std::string> codes = encode(root);
     std::ofstream output{output_path, std::ios::binary};
+    // 写入压缩文件标记
+    char identifier[8] = "HUFFMAN";
+    output.write(identifier, 8);
     // 压缩文件记录原始文件字节总数
     std::vector<char> total(8);
     for (int i = 0; i < 8; i++) {

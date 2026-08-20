@@ -30,8 +30,8 @@ int main(const int argc, char* argv[]) {
             file_name = file;
         else
             file_name = file.substr(0, last_dot);
-        std::cout << "Output path : " << directory_path + file_name + ".huffman\n";
         compress(file_path, directory_path + file_name + ".huffman");
+        std::cout << "Output path : " << directory_path + file_name + ".huffman\n";
     }
     else if (args[1] == "--decompress") {
         const std::string& file_path = args[2];
@@ -60,6 +60,7 @@ int main(const int argc, char* argv[]) {
             return 0;
         }
         decompress(file_path, directory_path + file_name + ".txt");
+        std::cout << "Output path : " << directory_path + file_name + ".txt\n";
     }
     else {
         std::cerr << "Unknown command\n";
