@@ -16,16 +16,14 @@ std::string decompress(const std::string& file_path, const std::string& output_p
         throw std::runtime_error("Not compressed file");
     // 读取密码并核对
     std::vector<char> password_array(password.length());
-    input.read(&password_array[0], static_cast<long long>(password.length()));
-    password_array.push_back('\0');
+    input.read(password_array.data(), static_cast<long long>(password.length()));
     input.read(identifier, 8);
     if (std::string(password_array.begin(), password_array.end()) != password || std::string(identifier) != "HUFFMAN")
         throw std::runtime_error("Password is incorrect");
     // 读取文件后缀
     int extension_length = input.get();
     std::vector<char> extension_array(extension_length);
-    input.read(&extension_array[0], extension_length);
-    extension_array.push_back('\0');
+    input.read(extension_array.data(), extension_length);
     auto extension = std::string(extension_array.begin(), extension_array.end());
     // 读取原始文件字节总数
     unsigned long long byte_total = 0;
