@@ -56,6 +56,8 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     if (!input.is_open())
         throw std::runtime_error("Cannot open input file");
     std::pair<std::vector<unsigned long long>, unsigned long long> pair = countBytes(std::move(input));
+    std::shared_ptr<Node> root = buildTree(pair.first);
+    std::vector<std::string> codes = encode(root);
     std::ofstream output{output_path, std::ios::binary};
     if (!output.is_open())
         throw std::runtime_error("Cannot open output file");
@@ -90,8 +92,6 @@ void compress(const std::string& file_path, const std::string& output_path, cons
         throw std::runtime_error("Header error");
     output.write(counts.data(), 2048);
     // 再次读取原始文件，进行压缩
-    std::shared_ptr<Node> root = buildTree(pair.first);
-    std::vector<std::string> codes = encode(root);
     std::ifstream new_input{file_path, std::ios::binary};
     if (!new_input.is_open())
         throw std::runtime_error("Cannot open input file");
