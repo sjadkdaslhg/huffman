@@ -37,8 +37,16 @@ int main(const int argc, char* argv[]) {
         std::string password;
         if (argc >= 5 && args[3] == "--password")
             password = args[4];
+        else if (argc == 4 && args[3] == "--password") {
+            std::cerr << "Empty password\n";
+            return 1;
+        }
         if (file_type.length() > 255) {
             std::cerr << "Extension too long\n";
+            return 1;
+        }
+        if (file_type == "huffman") {
+            std::cerr << "Cannot compress compressed file\n";
             return 1;
         }
         compress(file_path, directory_path + file_name + ".huffman", password, file_type);

@@ -125,6 +125,8 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     }
     if (buffer_count > 0)
         output.write(buffer.data(), buffer_count);
+    if (byte_count != byte_total)
+        throw std::runtime_error("File is broken");
     input.close();
     output.close();
     return extension;
