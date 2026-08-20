@@ -8,8 +8,8 @@
 int main(const int argc, char* argv[]) {
     const std::vector<std::string> args(argv, argv + argc);
     if (argc < 3) {
-        std::cerr << "--compress <file> : Compress mode\n";
-        std::cerr << "--decompress <file> : Decompress mode\n";
+        std::cerr << "--compress <file> (--password <password>) : Compress mode\n";
+        std::cerr << "--decompress <file> (--password <password>) : Decompress mode\n";
         return 0;
     }
     if (args[1] == "--compress") {
@@ -34,7 +34,10 @@ int main(const int argc, char* argv[]) {
             file_name = file.substr(0, last_dot);
             file_type = file.substr(last_dot + 1);
         }
-        compress(file_path, directory_path + file_name + ".huffman", "example", file_type);
+        std::string password;
+        if (argc >= 5 && args[3] == "--password")
+            password = args[4];
+        compress(file_path, directory_path + file_name + ".huffman", password, file_type);
         std::cout << "Output path : " << directory_path + file_name + ".huffman\n";
     }
     else if (args[1] == "--decompress") {
@@ -63,11 +66,15 @@ int main(const int argc, char* argv[]) {
             std::cerr << "Not compressed file\n";
             return 0;
         }
-        std::string extension = decompress(file_path, directory_path + file_name, "example");
+        std::string password;
+        if (argc >= 5 && args[3] == "--password")
+            password = args[4];
+        std::string extension = decompress(file_path, directory_path + file_name, password);
         std::cout << "Output path : " << directory_path + file_name + '.' + extension;
     }
     else {
-        std::cerr << "Unknown command\n";
+        std::cerr << "--compress <file> (--password <password>) : Compress mode\n";
+        std::cerr << "--decompress <file> (--password <password>) : Decompress mode\n";
         return 0;
     }
 }
