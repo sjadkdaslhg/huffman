@@ -9,26 +9,38 @@
 
 std::string decompress(const std::string& file_path, const std::string& output_path, const std::string& password) {
     std::ifstream input{file_path, std::ios::binary};
+    if (!input.is_open())
+        throw std::runtime_error("Cannot open input file");
     // 读取压缩文件标记并核对
     char identifier[8];
     input.read(identifier, 8);
+    if (input.fail() || input.gcount() != 8)
+        throw std::runtime_error("File is broken");
     if (std::string(identifier) != "HUFFMAN")
         throw std::runtime_error("Not compressed file");
     // 读取密码并核对
     std::vector<char> password_array(password.length());
     input.read(password_array.data(), static_cast<long long>(password.length()));
+    if (input.fail() || input.gcount() != password.length())
+        throw std::runtime_error("File is broken");
     input.read(identifier, 8);
+    if (input.fail() || input.gcount() != 8)
+        throw std::runtime_error("File is broken");
     if (std::string(password_array.begin(), password_array.end()) != password || std::string(identifier) != "HUFFMAN")
         throw std::runtime_error("Password is incorrect");
     // 读取文件后缀
     int extension_length = input.get();
     std::vector<char> extension_array(extension_length);
     input.read(extension_array.data(), extension_length);
+    if (input.fail() || input.gcount() != extension_length)
+        throw std::runtime_error("File is broken");
     auto extension = std::string(extension_array.begin(), extension_array.end());
     // 读取原始文件字节总数
     unsigned long long byte_total = 0;
     char total[8];
     input.read(total, 8);
+    if (input.fail() || input.gcount() != 8)
+        throw std::runtime_error("File is broken");
     for (int i = 7; i >= 0; i--)
         byte_total = byte_total << 8 | static_cast<unsigned char>(total[i]);
     // 读取原始文件所有字节出现次数
@@ -47,7 +59,14 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     }
     // 构建哈夫曼树，解压压缩文件
     std::shared_ptr<Node> root = buildTree(counts);
-    std::ofstream output{output_path + '.' + extension, std::ios::binary};
+    std::string output_file;
+    if (extension.empty())
+        output_file = output_path;
+    else
+        output_file = output_path + '.' + extension;
+    std::ofstream output{output_file, std::ios::binary};
+    if (!output.is_open())
+        throw std::runtime_error("Cannot open output file");
     // 原始文件只有一种字节
     if (!root->left_child && !root->right_child) {
         unsigned long long byte_count = 0;

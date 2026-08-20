@@ -70,7 +70,9 @@ int main(const int argc, char* argv[]) {
         if (argc >= 5 && args[3] == "--password")
             password = args[4];
         std::string extension = decompress(file_path, directory_path + file_name, password);
-        std::cout << "Output path : " << directory_path + file_name + '.' + extension;
+        if (extension.empty())
+            std::cout << "Output path : " << directory_path + file_name << '\n';
+        std::cout << "Output path : " << directory_path + file_name + '.' + extension << '\n';
     }
     else {
         std::cerr << "--compress <file> (--password <password>) : Compress mode\n";

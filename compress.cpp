@@ -30,7 +30,6 @@ static std::vector<std::string> encode(const std::shared_ptr<Node>& root) {
     if (!root)
         throw std::runtime_error("Empty tree");
     std::vector<std::string> codes(256);
-    size_t count = 0;
     // 原始文件只有一种字节，哈夫曼树只有一个结点，编码为 1
     if (!root->left_child && !root->right_child) {
         codes[root->byte_value] = "1";
@@ -42,27 +41,27 @@ static std::vector<std::string> encode(const std::shared_ptr<Node>& root) {
     while (!stack.empty()) {
         std::pair<std::shared_ptr<Node>, std::string> top = stack.top();
         stack.pop();
-        if (!top.first->left_child && !top.first->right_child) {
+        if (!top.first->left_child && !top.first->right_child)
             codes[top.first->byte_value] = top.second;
-            ++count;
-        }
         else { // 往左子树编码为 0，往右子树编码为 1
             stack.emplace(top.first->left_child, top.second + "0");
             stack.emplace(top.first->right_child, top.second + "1");
         }
     }
-    if (count != 256)
-        throw std::runtime_error("Encoding failed");
     return codes;
 }
 
 
 void compress(const std::string& file_path, const std::string& output_path, const std::string& password, const std::string& extension) {
     std::ifstream input{file_path, std::ios::binary};
+    if (!input.is_open())
+        throw std::runtime_error("Cannot open input file");
     std::pair<std::vector<unsigned long long>, unsigned long long> pair = countBytes(std::move(input));
     std::shared_ptr<Node> root = buildTree(pair.first);
     std::vector<std::string> codes = encode(root);
     std::ofstream output{output_path, std::ios::binary};
+    if (!output.is_open())
+        throw std::runtime_error("Cannot open output file");
     // 写入压缩文件标记
     char identifier[8] = "HUFFMAN";
     output.write(identifier, 8);
@@ -95,6 +94,8 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     output.write(counts.data(), 2048);
     // 再次读取原始文件，进行压缩
     std::ifstream new_input{file_path, std::ios::binary};
+    if (!new_input.is_open())
+        throw std::runtime_error("Cannot open input file");
     std::istreambuf_iterator<char> iterator{new_input};
     std::istreambuf_iterator<char> end_of_file;
     unsigned char bit = 0;
@@ -124,7 +125,6 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     }
     if (buffer_count > 0)
         output.write(buffer.data(), buffer_count);
-    input.close();
     new_input.close();
     output.close();
 }
