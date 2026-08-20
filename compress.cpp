@@ -83,7 +83,7 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     }
     output.write(hash_array.data(), 8);
     // 写入压缩文件标记
-    char identifier[8] = "HUFFMAN";
+    char identifier[8] = "HUFF1.0";
     output.write(identifier, 8);
     // 写入密码和文件后缀
     std::vector<char> password_array(password.begin(), password.end());

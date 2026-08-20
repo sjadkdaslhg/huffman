@@ -81,6 +81,10 @@ int main(const int argc, char* argv[]) {
         std::string password;
         if (argc >= 5 && args[3] == "--password")
             password = args[4];
+        else if (argc == 4 && args[3] == "--password") {
+            std::cerr << "Empty password\n";
+            return 1;
+        }
         std::string extension = decompress(file_path, directory_path + file_name, password);
         if (extension.empty())
             std::cout << "Output path : " << directory_path + file_name << '\n';
