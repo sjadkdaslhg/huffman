@@ -94,8 +94,11 @@ std::string decompress(const std::string& file_path, const std::string& output_p
                 throw std::runtime_error("File is broken");
             input.close();
             output.close();
-            std::remove(output_file.c_str());
-            std::rename(output_temp.c_str(), output_file.c_str());
+            int rename_state = std::rename(output_temp.c_str(), output_file.c_str());
+            if (!rename_state) {
+                std::remove(output_file.c_str());
+                std::rename(output_temp.c_str(), output_file.c_str());
+            }
             return extension;
         }
         // 原始文件只有一种字节
@@ -130,8 +133,11 @@ std::string decompress(const std::string& file_path, const std::string& output_p
                 throw std::runtime_error("File is broken");
             input.close();
             output.close();
-            std::remove(output_file.c_str());
-            std::rename(output_temp.c_str(), output_file.c_str());
+            int rename_state = std::rename(output_temp.c_str(), output_file.c_str());
+            if (!rename_state) {
+                std::remove(output_file.c_str());
+                std::rename(output_temp.c_str(), output_file.c_str());
+            }
             return extension;
         }
         // 原始文件有多种字节
@@ -184,7 +190,10 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     }
     input.close();
     output.close();
-    std::remove(output_file.c_str());
-    std::rename(output_temp.c_str(), output_file.c_str());
+    int rename_state = std::rename(output_temp.c_str(), output_file.c_str());
+    if (!rename_state) {
+        std::remove(output_file.c_str());
+        std::rename(output_temp.c_str(), output_file.c_str());
+    }
     return extension;
 }
