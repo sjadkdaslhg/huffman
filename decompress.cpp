@@ -81,6 +81,8 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     else
         output_file = output_path + '.' + extension;
     std::string output_temp = output_path + ".temp";
+    if (output_temp == output_file)
+        output_temp += '1';
     std::ofstream output{output_temp, std::ios::binary};
     if (!output.is_open())
         throw std::runtime_error("Cannot open output file");
