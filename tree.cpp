@@ -27,8 +27,10 @@ std::shared_ptr<Node> buildTree(const std::vector<unsigned long long>& counts) {
     for (int i = 0; i < 256; i++)
         if (counts[i] > 0)
             nodes.push_back(std::make_shared<Node>(i, counts[i], nullptr, nullptr));
+    if (nodes.empty())
+        return nullptr;
     std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, compare> priority_queue{nodes.begin(), nodes.end()};
-    for (int i = 0; i < 255; i++) {
+    while (priority_queue.size() > 1) {
         std::shared_ptr<Node> left = priority_queue.top();
         priority_queue.pop();
         std::shared_ptr<Node> right = priority_queue.top();

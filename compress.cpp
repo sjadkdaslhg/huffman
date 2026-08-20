@@ -28,7 +28,7 @@ static std::pair<std::vector<unsigned long long>, unsigned long long> countBytes
 // 根据哈夫曼树，对每个字节编码
 static std::vector<std::string> encode(const std::shared_ptr<Node>& root) {
     if (!root)
-        throw std::runtime_error("Empty tree");
+        return std::vector<std::string>{};
     std::vector<std::string> codes(256);
     // 原始文件只有一种字节，哈夫曼树只有一个结点，编码为 1
     if (!root->left_child && !root->right_child) {
@@ -37,7 +37,6 @@ static std::vector<std::string> encode(const std::shared_ptr<Node>& root) {
     }
     std::stack<std::pair<std::shared_ptr<Node>, std::string>> stack;
     stack.emplace(root, "");
-    std::string code;
     while (!stack.empty()) {
         std::pair<std::shared_ptr<Node>, std::string> top = stack.top();
         stack.pop();
@@ -57,8 +56,6 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     if (!input.is_open())
         throw std::runtime_error("Cannot open input file");
     std::pair<std::vector<unsigned long long>, unsigned long long> pair = countBytes(std::move(input));
-    std::shared_ptr<Node> root = buildTree(pair.first);
-    std::vector<std::string> codes = encode(root);
     std::ofstream output{output_path, std::ios::binary};
     if (!output.is_open())
         throw std::runtime_error("Cannot open output file");
@@ -93,6 +90,8 @@ void compress(const std::string& file_path, const std::string& output_path, cons
         throw std::runtime_error("Header error");
     output.write(counts.data(), 2048);
     // 再次读取原始文件，进行压缩
+    std::shared_ptr<Node> root = buildTree(pair.first);
+    std::vector<std::string> codes = encode(root);
     std::ifstream new_input{file_path, std::ios::binary};
     if (!new_input.is_open())
         throw std::runtime_error("Cannot open input file");

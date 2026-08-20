@@ -37,6 +37,10 @@ int main(const int argc, char* argv[]) {
         std::string password;
         if (argc >= 5 && args[3] == "--password")
             password = args[4];
+        if (file_type.length() > 255) {
+            std::cerr << "Extension too long\n";
+            return 0;
+        }
         compress(file_path, directory_path + file_name + ".huffman", password, file_type);
         std::cout << "Output path : " << directory_path + file_name + ".huffman\n";
     }
@@ -72,7 +76,8 @@ int main(const int argc, char* argv[]) {
         std::string extension = decompress(file_path, directory_path + file_name, password);
         if (extension.empty())
             std::cout << "Output path : " << directory_path + file_name << '\n';
-        std::cout << "Output path : " << directory_path + file_name + '.' + extension << '\n';
+        else
+            std::cout << "Output path : " << directory_path + file_name + '.' + extension << '\n';
     }
     else {
         std::cerr << "--compress <file> (--password <password>) : Compress mode\n";

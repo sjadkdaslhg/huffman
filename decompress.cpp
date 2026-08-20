@@ -30,11 +30,16 @@ std::string decompress(const std::string& file_path, const std::string& output_p
         throw std::runtime_error("Password is incorrect");
     // 读取文件后缀
     int extension_length = input.get();
-    std::vector<char> extension_array(extension_length);
-    input.read(extension_array.data(), extension_length);
-    if (input.fail() || input.gcount() != extension_length)
-        throw std::runtime_error("File is broken");
-    auto extension = std::string(extension_array.begin(), extension_array.end());
+    std::string extension;
+    if (extension_length > 0) {
+        std::vector<char> extension_array(extension_length);
+        input.read(extension_array.data(), extension_length);
+        if (input.fail() || input.gcount() != extension_length)
+            throw std::runtime_error("File is broken");
+        extension = std::string(extension_array.begin(), extension_array.end());
+    }
+    else
+        extension = "";
     // 读取原始文件字节总数
     unsigned long long byte_total = 0;
     char total[8];
@@ -67,6 +72,9 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     std::ofstream output{output_file, std::ios::binary};
     if (!output.is_open())
         throw std::runtime_error("Cannot open output file");
+    // 原始文件为空
+    if (!root)
+        return extension;
     // 原始文件只有一种字节
     if (!root->left_child && !root->right_child) {
         unsigned long long byte_count = 0;
