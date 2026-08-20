@@ -90,6 +90,9 @@ std::string decompress(const std::string& file_path, const std::string& output_p
         if (!root) {
             if (hash != hash_expect)
                 throw std::runtime_error("File is broken");
+            input.close();
+            output.close();
+            std::rename(output_temp.c_str(), output_file.c_str());
             return extension;
         }
         // 原始文件只有一种字节
@@ -122,13 +125,16 @@ std::string decompress(const std::string& file_path, const std::string& output_p
             }
             if (hash != hash_expect)
                 throw std::runtime_error("File is broken");
+            input.close();
+            output.close();
+            std::rename(output_temp.c_str(), output_file.c_str());
             return extension;
         }
         // 原始文件有多种字节
         std::ifstream temp{file_path, std::ios::binary | std::ios::ate};
         if (!temp.is_open())
             throw std::runtime_error("Cannot open input file");
-        if (temp.tellg() < byte_total / 8)
+        if (static_cast<unsigned long long>(temp.tellg()) < byte_total / 8)
             throw std::runtime_error("File is broken");
         std::istreambuf_iterator<char> iterator{input};
         std::istreambuf_iterator<char> end_of_file;
