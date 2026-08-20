@@ -92,6 +92,7 @@ std::string decompress(const std::string& file_path, const std::string& output_p
                 throw std::runtime_error("File is broken");
             input.close();
             output.close();
+            std::remove(output_file.c_str());
             std::rename(output_temp.c_str(), output_file.c_str());
             return extension;
         }
@@ -127,6 +128,7 @@ std::string decompress(const std::string& file_path, const std::string& output_p
                 throw std::runtime_error("File is broken");
             input.close();
             output.close();
+            std::remove(output_file.c_str());
             std::rename(output_temp.c_str(), output_file.c_str());
             return extension;
         }
@@ -180,6 +182,7 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     }
     input.close();
     output.close();
+    std::remove(output_file.c_str());
     std::rename(output_temp.c_str(), output_file.c_str());
     return extension;
 }
