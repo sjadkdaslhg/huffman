@@ -91,6 +91,11 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     }
     // 原始文件只有一种字节
     if (!root->left_child && !root->right_child) {
+        std::ifstream temp{file_path, std::ios::binary | std::ios::ate};
+        if (!temp.is_open())
+            throw std::runtime_error("Cannot open input file");
+        if (temp.tellg() < byte_total / 8)
+            throw std::runtime_error("File is broken");
         unsigned long long byte_count = 0;
         std::vector<char> buffer(1024, static_cast<char>(root->byte_value));
         while (byte_count < byte_total) {
@@ -117,6 +122,11 @@ std::string decompress(const std::string& file_path, const std::string& output_p
         return extension;
     }
     // 原始文件有多种字节
+    std::ifstream temp{file_path, std::ios::binary | std::ios::ate};
+    if (!temp.is_open())
+        throw std::runtime_error("Cannot open input file");
+    if (temp.tellg() < byte_total / 8)
+        throw std::runtime_error("File is broken");
     std::istreambuf_iterator<char> iterator{input};
     std::istreambuf_iterator<char> end_of_file;
     std::shared_ptr<Node> current = root;
