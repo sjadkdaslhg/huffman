@@ -26,6 +26,8 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     input.read(identifier, 8);
     if (input.fail() || input.gcount() != 8)
         throw std::runtime_error("File is broken");
+    for (char& ch: password_array)
+        --ch; // 压缩文件写入密码时每个字符加 1
     if (std::string(password_array.begin(), password_array.end()) != password || std::string(identifier) != "HUFFMAN")
         throw std::runtime_error("Password is incorrect");
     // 读取文件后缀

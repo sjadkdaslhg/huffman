@@ -73,6 +73,8 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     output.write(identifier, 8);
     // 写入密码和文件后缀
     std::vector<char> password_array(password.begin(), password.end());
+    for (char& ch: password_array)
+        ++ch; // 写入密码时每个字符加 1，以文本格式打开压缩文件时不显示正确密码
     output.write(password_array.data(), static_cast<long long>(password_array.size()));
     output.write(identifier, 8); // 再次写入压缩文件标记，表示密码结束
     output.put(static_cast<char>(extension.length())); // 写入文件后缀长度
