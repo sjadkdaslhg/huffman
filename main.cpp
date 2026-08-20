@@ -6,7 +6,7 @@
 
 
 int main(const int argc, char* argv[]) {
-    const std::vector<std::string> args(argv + 1, argv + argc);
+    const std::vector<std::string> args(argv, argv + argc);
     if (argc < 3) {
         std::cerr << "--compress <file> : Compress mode\n";
         std::cerr << "--decompress <file> : Decompress mode\n";
@@ -29,7 +29,8 @@ int main(const int argc, char* argv[]) {
         if (last_dot == std::string::npos)
             file_name = file;
         else
-            file_name = file.substr(last_dot);
+            file_name = file.substr(0, last_dot);
+        std::cout << "Output path: " << directory_path + file_name + ".huffman\n";
         compress(file_path, directory_path + file_name + ".huffman");
     }
     else if (args[1] == "--decompress") {
@@ -51,7 +52,7 @@ int main(const int argc, char* argv[]) {
             file_type = "";
         }
         else {
-            file_name = file.substr(last_dot);
+            file_name = file.substr(0, last_dot);
             file_type = file.substr(last_dot + 1);
         }
         if (file_type != "huffman") {

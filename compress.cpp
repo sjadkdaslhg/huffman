@@ -20,6 +20,7 @@ static std::pair<std::vector<unsigned long long>, unsigned long long> countBytes
         const char byte = *iterator;
         ++iterator;
         ++counts[byte & 0xFF];
+        ++count;
     }
     return {counts, count};
 }
@@ -39,6 +40,7 @@ static std::vector<std::string> encode(const std::shared_ptr<Node>& root) {
     std::string code;
     while (!stack.empty()) {
         std::pair<std::shared_ptr<Node>, std::string> top = stack.top();
+        stack.pop();
         if (!top.first->left_child && !top.first->right_child) {
             codes[top.first->byte_value] = top.second;
             ++count;
@@ -76,8 +78,11 @@ void compress(const std::string& file_path, const std::string& output_path) {
             counts[header_count++] = static_cast<char>(byte);
         }
     }
+    if (header_count != 2048)
+        throw std::runtime_error("Header error");
     output.write(counts.data(), 2048);
-    std::istreambuf_iterator<char> iterator{input};
+    std::ifstream new_input{file_path, std::ios::binary};
+    std::istreambuf_iterator<char> iterator{new_input};
     std::istreambuf_iterator<char> end_of_file;
     unsigned char bit = 0;
     size_t bit_count = 0;
@@ -87,16 +92,17 @@ void compress(const std::string& file_path, const std::string& output_path) {
         char byte = *iterator;
         ++iterator;
         for (char ch : codes[byte & 0xFF]) {
-            bit = bit << 1 | ch - '0';
+            bit = (bit | ch - '0') << 1;
             ++bit_count;
             if (bit_count == 8) {
                 buffer[buffer_count++] = static_cast<char>(bit);
                 bit_count = 0;
+                bit = 0;
             }
-        }
-        if (buffer_count == 2024) {
-            output.write(buffer.data(), buffer_count);
-            buffer_count = 0;
+            if (buffer_count == 1024) {
+                output.write(buffer.data(), buffer_count);
+                buffer_count = 0;
+            }
         }
     }
     if (bit_count > 0) {
@@ -105,4 +111,6 @@ void compress(const std::string& file_path, const std::string& output_path) {
     }
     if (buffer_count > 0)
         output.write(buffer.data(), buffer_count);
+    input.close();
+    output.close();
 }
