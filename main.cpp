@@ -25,12 +25,16 @@ int main(const int argc, char* argv[]) {
             file = file_path.substr(last_slash + 1);
         }
         const size_t last_dot = file.find_last_of('.');
-        std::string file_name;
-        if (last_dot == std::string::npos)
+        std::string file_name, file_type;
+        if (last_dot == std::string::npos) {
             file_name = file;
-        else
+            file_type = "";
+        }
+        else {
             file_name = file.substr(0, last_dot);
-        compress(file_path, directory_path + file_name + ".huffman");
+            file_type = file.substr(last_dot + 1);
+        }
+        compress(file_path, directory_path + file_name + ".huffman", "example", file_type);
         std::cout << "Output path : " << directory_path + file_name + ".huffman\n";
     }
     else if (args[1] == "--decompress") {
@@ -59,8 +63,8 @@ int main(const int argc, char* argv[]) {
             std::cerr << "Not compressed file\n";
             return 0;
         }
-        decompress(file_path, directory_path + file_name + ".txt");
-        std::cout << "Output path : " << directory_path + file_name + ".txt\n";
+        std::string extension = decompress(file_path, directory_path + file_name, "example");
+        std::cout << "Output path : " << directory_path + file_name + '.' + extension;
     }
     else {
         std::cerr << "Unknown command\n";

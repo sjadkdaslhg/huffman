@@ -7,13 +7,25 @@
 #include <iterator>
 
 
-void decompress(const std::string& file_path, const std::string& output_path) {
+std::string decompress(const std::string& file_path, const std::string& output_path, const std::string& password) {
     std::ifstream input{file_path, std::ios::binary};
     // 读取压缩文件标记并核对
     char identifier[8];
     input.read(identifier, 8);
     if (std::string(identifier) != "HUFFMAN")
         throw std::runtime_error("Not compressed file");
+    // 读取密码并核对
+    char password_array[password.length()];
+    input.read(password_array, static_cast<long long>(password.length()));
+    input.read(identifier, 8);
+    if (std::string(password_array) != password || std::string(identifier) != "HUFFMAN")
+        throw std::runtime_error("Password is incorrect");
+    // 读取文件后缀
+    int extension_length = input.get();
+    char extension_array[extension_length + 1];
+    input.read(extension_array, extension_length);
+    extension_array[extension_length] = '\0';
+    auto extension = std::string(extension_array);
     // 读取原始文件字节总数
     unsigned long long byte_total = 0;
     char total[8];
@@ -36,7 +48,7 @@ void decompress(const std::string& file_path, const std::string& output_path) {
     }
     // 构建哈夫曼树，解压压缩文件
     std::shared_ptr<Node> root = buildTree(counts);
-    std::ofstream output{output_path, std::ios::binary};
+    std::ofstream output{output_path + '.' + extension, std::ios::binary};
     // 原始文件只有一种字节
     if (!root->left_child && !root->right_child) {
         unsigned long long byte_count = 0;
@@ -52,7 +64,7 @@ void decompress(const std::string& file_path, const std::string& output_path) {
                 byte_count = byte_count + left.size();
             }
         }
-        return;
+        return extension;
     }
     // 原始文件有多种字节
     std::istreambuf_iterator<char> iterator{input};
@@ -85,4 +97,5 @@ void decompress(const std::string& file_path, const std::string& output_path) {
         output.write(buffer.data(), buffer_count);
     input.close();
     output.close();
+    return extension;
 }

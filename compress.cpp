@@ -57,7 +57,7 @@ static std::vector<std::string> encode(const std::shared_ptr<Node>& root) {
 }
 
 
-void compress(const std::string& file_path, const std::string& output_path) {
+void compress(const std::string& file_path, const std::string& output_path, const std::string& password, const std::string& extension) {
     std::ifstream input{file_path, std::ios::binary};
     std::pair<std::vector<unsigned long long>, unsigned long long> pair = countBytes(std::move(input));
     std::shared_ptr<Node> root = buildTree(pair.first);
@@ -66,6 +66,11 @@ void compress(const std::string& file_path, const std::string& output_path) {
     // 写入压缩文件标记
     char identifier[8] = "HUFFMAN";
     output.write(identifier, 8);
+    // 写入密码和文件后缀
+    output.write(password.data(), static_cast<long long>(password.length()));
+    output.write(identifier, 8); // 再次写入压缩文件标记，表示密码结束
+    output.put(static_cast<char>(extension.length())); // 写入文件后缀长度
+    output.write(extension.data(), static_cast<long long>(extension.length()));
     // 压缩文件记录原始文件字节总数
     std::vector<char> total(8);
     for (int i = 0; i < 8; i++) {
