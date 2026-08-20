@@ -11,6 +11,14 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     std::ifstream input{file_path, std::ios::binary};
     if (!input.is_open())
         throw std::runtime_error("Cannot open input file");
+    // 读取原始文件哈希
+    unsigned long long hash_expect = 0;
+    char hash_array[8];
+    input.read(hash_array, 8);
+    if (input.fail() || input.gcount() != 8)
+        throw std::runtime_error("File is broken");
+    for (int i = 7; i >= 0; i--)
+        hash_expect = hash_expect << 8 | static_cast<unsigned char>(hash_array[i]);
     // 读取压缩文件标记并核对
     char identifier[8];
     input.read(identifier, 8);
@@ -74,6 +82,7 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     std::ofstream output{output_file, std::ios::binary};
     if (!output.is_open())
         throw std::runtime_error("Cannot open output file");
+    unsigned long long hash = 14695981039346656037ULL;
     // 原始文件为空
     if (!root)
         return extension;
@@ -85,13 +94,23 @@ std::string decompress(const std::string& file_path, const std::string& output_p
             if (byte_total - byte_count >= 1024) {
                 output.write(buffer.data(), 1024);
                 byte_count = byte_count + 1024;
+                for (int i = 0; i < 1024; i++) {
+                    hash = hash ^ root->byte_value;
+                    hash = hash * 1099511628211ULL;
+                }
             }
             else {
                 std::vector<char> left(byte_total - byte_count, static_cast<char>(root->byte_value));
                 output.write(left.data(), static_cast<long long>(left.size()));
                 byte_count = byte_count + left.size();
+                for (int i = 0; i < static_cast<int>(left.size()); i++) {
+                    hash = hash ^ root->byte_value;
+                    hash = hash * 1099511628211ULL;
+                }
             }
         }
+        if (hash != hash_expect)
+            throw std::runtime_error("File is broken");
         return extension;
     }
     // 原始文件有多种字节
@@ -112,6 +131,8 @@ std::string decompress(const std::string& file_path, const std::string& output_p
             byte = byte << 1;
             if (!current->left_child && !current->right_child) {
                 buffer[buffer_count++] = static_cast<char>(current->byte_value);
+                hash = hash ^ current->byte_value;
+                hash = hash * 1099511628211ULL;
                 current = root;
                 ++byte_count;
                 if (buffer_count == 1024) {
@@ -125,7 +146,8 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     }
     if (buffer_count > 0)
         output.write(buffer.data(), buffer_count);
-    if (byte_count != byte_total)
+    // 比较解压后字节总数和哈希是否与原始文件相同
+    if (byte_count != byte_total || hash != hash_expect)
         throw std::runtime_error("File is broken");
     input.close();
     output.close();

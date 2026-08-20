@@ -11,8 +11,9 @@
 
 
 // 读取原始文件，返回字节出现次数数组和字节总数
-static std::pair<std::vector<unsigned long long>, unsigned long long> countBytes(std::ifstream input) {
+static std::pair<std::vector<unsigned long long>, std::vector<unsigned long long>> countBytes(std::ifstream input) {
     unsigned long long count = 0;
+    unsigned long long hash = 14695981039346656037ULL;
     std::vector<unsigned long long> counts(256);
     std::istreambuf_iterator<char> iterator{input};
     const std::istreambuf_iterator<char> end_of_file;
@@ -21,8 +22,12 @@ static std::pair<std::vector<unsigned long long>, unsigned long long> countBytes
         ++iterator;
         ++counts[byte & 0xFF];
         ++count;
+        // 计算哈希
+        hash = hash ^ static_cast<unsigned long long>(byte);
+        hash = hash * 1099511628211ULL;
     }
-    return {counts, count};
+    std::vector<unsigned long long> array{count, hash};
+    return {counts, array};
 }
 
 // 根据哈夫曼树，对每个字节编码
@@ -55,19 +60,28 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     std::ifstream input{file_path, std::ios::binary};
     if (!input.is_open())
         throw std::runtime_error("Cannot open input file");
-    std::pair<std::vector<unsigned long long>, unsigned long long> pair = countBytes(std::move(input));
+    std::pair<std::vector<unsigned long long>, std::vector<unsigned long long>> pair = countBytes(std::move(input));
     std::shared_ptr<Node> root = buildTree(pair.first);
     std::vector<std::string> codes = encode(root);
     std::ofstream output{output_path, std::ios::binary};
     if (!output.is_open())
         throw std::runtime_error("Cannot open output file");
     /* 压缩文件头部信息：
+        ................：原始文件哈希
         H U F F M A N \0：压缩文件标记
         ****************：密码
         H U F F M A N \0：密码结束标记
         length..........：文件后缀长度和文件后缀
         头部信息均为未压缩的字符
     */
+    // 写入原始文件哈希
+    std::vector<char> hash_array(8);
+    for (int i = 0; i < 8; i++) {
+        unsigned char byte = pair.second[1] >> 8; // pair.second 长度为 2
+        pair.second[1] = pair.second[1] >> 8;
+        hash_array[i] = static_cast<char>(byte);
+    }
+    output.write(hash_array.data(), 8);
     // 写入压缩文件标记
     char identifier[8] = "HUFFMAN";
     output.write(identifier, 8);
@@ -82,8 +96,8 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     // 压缩文件记录原始文件字节总数
     std::vector<char> total(8);
     for (int i = 0; i < 8; i++) {
-        unsigned char byte = pair.second & 0xFF;
-        pair.second = pair.second >> 8;
+        unsigned char byte = pair.second[0] & 0xFF;
+        pair.second[0] = pair.second[0] >> 8;
         total[i] = static_cast<char>(byte);
     }
     output.write(total.data(), 8);
