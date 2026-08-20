@@ -31,6 +31,7 @@ static std::vector<std::string> encode(const std::shared_ptr<Node>& root) {
         throw std::runtime_error("Empty tree");
     std::vector<std::string> codes(256);
     size_t count = 0;
+    // 原始文件只有一种字节，哈夫曼树只有一个结点，编码为 1
     if (!root->left_child && !root->right_child) {
         codes[root->byte_value] = "1";
         return codes;
@@ -45,7 +46,7 @@ static std::vector<std::string> encode(const std::shared_ptr<Node>& root) {
             codes[top.first->byte_value] = top.second;
             ++count;
         }
-        else {
+        else { // 往左子树编码为 0，往右子树编码为 1
             stack.emplace(top.first->left_child, top.second + "0");
             stack.emplace(top.first->right_child, top.second + "1");
         }
@@ -62,6 +63,7 @@ void compress(const std::string& file_path, const std::string& output_path) {
     std::shared_ptr<Node> root = buildTree(pair.first);
     std::vector<std::string> codes = encode(root);
     std::ofstream output{output_path, std::ios::binary};
+    // 压缩文件记录原始文件字节总数
     std::vector<char> total(8);
     for (int i = 0; i < 8; i++) {
         unsigned char byte = pair.second & 0xFF;
@@ -69,6 +71,7 @@ void compress(const std::string& file_path, const std::string& output_path) {
         total[i] = static_cast<char>(byte);
     }
     output.write(total.data(), 8);
+    // 压缩文件记录原始文件所有字节出现次数
     std::vector<char> counts(2048);
     size_t header_count = 0;
     for (int i = 0; i < 256; i++) {
@@ -81,6 +84,7 @@ void compress(const std::string& file_path, const std::string& output_path) {
     if (header_count != 2048)
         throw std::runtime_error("Header error");
     output.write(counts.data(), 2048);
+    // 再次读取原始文件，进行压缩
     std::ifstream new_input{file_path, std::ios::binary};
     std::istreambuf_iterator<char> iterator{new_input};
     std::istreambuf_iterator<char> end_of_file;

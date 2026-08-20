@@ -10,10 +10,12 @@
 void decompress(const std::string& file_path, const std::string& output_path) {
     std::ifstream input{file_path, std::ios::binary};
     unsigned long long byte_total = 0;
+    // 读取原始文件字节总数
     char total[8];
     input.read(total, 8);
     for (int i = 7; i >= 0; i--)
         byte_total = byte_total << 8 | static_cast<unsigned char>(total[i]);
+    // 读取原始文件所有字节出现次数
     char header[2048];
     input.read(header, 2048);
     if (input.fail() || input.gcount() != 2048)
@@ -27,8 +29,10 @@ void decompress(const std::string& file_path, const std::string& output_path) {
         }
         counts[i] = count;
     }
+    // 构建哈夫曼树，解压压缩文件
     std::shared_ptr<Node> root = buildTree(counts);
     std::ofstream output{output_path, std::ios::binary};
+    // 原始文件只有一种字节
     if (!root->left_child && !root->right_child) {
         unsigned long long byte_count = 0;
         std::vector<char> buffer(1024, static_cast<char>(root->byte_value));
@@ -45,6 +49,7 @@ void decompress(const std::string& file_path, const std::string& output_path) {
         }
         return;
     }
+    // 原始文件有多种字节
     std::istreambuf_iterator<char> iterator{input};
     std::istreambuf_iterator<char> end_of_file;
     std::shared_ptr<Node> current = root;

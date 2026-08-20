@@ -11,7 +11,7 @@ Node::Node(const unsigned char byte_value, const unsigned long long byte_count, 
 // 先比较字节出现次数，再比较字节值
 static bool operator<(const std::shared_ptr<Node>& left, const std::shared_ptr<Node>& right) {
     if (left->byte_count != right->byte_count)
-        return left->byte_count > right->byte_count;
+        return left->byte_count > right->byte_count; // 构建哈夫曼树，使用小根堆
     return left->byte_value < right->byte_value;
 }
 
