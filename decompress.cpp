@@ -84,8 +84,11 @@ std::string decompress(const std::string& file_path, const std::string& output_p
         throw std::runtime_error("Cannot open output file");
     unsigned long long hash = 14695981039346656037ULL;
     // 原始文件为空
-    if (!root)
+    if (!root) {
+        if (hash != hash_expect)
+            throw std::runtime_error("File is broken");
         return extension;
+    }
     // 原始文件只有一种字节
     if (!root->left_child && !root->right_child) {
         unsigned long long byte_count = 0;

@@ -23,7 +23,7 @@ static std::pair<std::vector<unsigned long long>, std::vector<unsigned long long
         ++counts[byte & 0xFF];
         ++count;
         // 计算哈希
-        hash = hash ^ static_cast<unsigned long long>(byte);
+        hash = hash ^ static_cast<unsigned long long>(byte & 0xFF);
         hash = hash * 1099511628211ULL;
     }
     std::vector<unsigned long long> array{count, hash};
@@ -77,7 +77,7 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     // 写入原始文件哈希
     std::vector<char> hash_array(8);
     for (int i = 0; i < 8; i++) {
-        unsigned char byte = pair.second[1] >> 8; // pair.second 长度为 2
+        unsigned char byte = pair.second[1] & 0xFF; // pair.second 长度为 2
         pair.second[1] = pair.second[1] >> 8;
         hash_array[i] = static_cast<char>(byte);
     }
