@@ -61,6 +61,13 @@ void compress(const std::string& file_path, const std::string& output_path, cons
     std::ofstream output{output_path, std::ios::binary};
     if (!output.is_open())
         throw std::runtime_error("Cannot open output file");
+    /* 压缩文件头部信息：
+        H U F F M A N \0：压缩文件标记
+        ****************：密码
+        H U F F M A N \0：密码结束标记
+        length..........：文件后缀长度和文件后缀
+        头部信息均为未压缩的字符
+    */
     // 写入压缩文件标记
     char identifier[8] = "HUFFMAN";
     output.write(identifier, 8);

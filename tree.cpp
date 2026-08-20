@@ -13,7 +13,7 @@ namespace {
     struct compare {
         bool operator()(const std::shared_ptr<Node>& left, const std::shared_ptr<Node>& right) const {
             if (left->byte_count != right->byte_count)
-                return left->byte_count > right->byte_count; // 构建哈夫曼树，使用小根堆
+                return left->byte_count > right->byte_count; // 使用小根堆构建哈夫曼树
             return left->byte_value < right->byte_value;
         }
     };
@@ -26,10 +26,10 @@ std::shared_ptr<Node> buildTree(const std::vector<unsigned long long>& counts) {
     std::vector<std::shared_ptr<Node>> nodes;
     for (int i = 0; i < 256; i++)
         if (counts[i] > 0)
-            nodes.push_back(std::make_shared<Node>(i, counts[i], nullptr, nullptr));
+            nodes.push_back(std::make_shared<Node>(i, counts[i], nullptr, nullptr)); // 只记录出现过的字节
     if (nodes.empty())
         return nullptr;
-    std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, compare> priority_queue{nodes.begin(), nodes.end()};
+    std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, compare> priority_queue{nodes.begin(), nodes.end()}; // 小根堆
     while (priority_queue.size() > 1) {
         std::shared_ptr<Node> left = priority_queue.top();
         priority_queue.pop();
