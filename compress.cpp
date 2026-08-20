@@ -92,7 +92,7 @@ void compress(const std::string& file_path, const std::string& output_path) {
         char byte = *iterator;
         ++iterator;
         for (char ch : codes[byte & 0xFF]) {
-            bit = (bit | ch - '0') << 1;
+            bit = bit << 1 | ch - '0';
             ++bit_count;
             if (bit_count == 8) {
                 buffer[buffer_count++] = static_cast<char>(bit);
@@ -112,5 +112,6 @@ void compress(const std::string& file_path, const std::string& output_path) {
     if (buffer_count > 0)
         output.write(buffer.data(), buffer_count);
     input.close();
+    new_input.close();
     output.close();
 }

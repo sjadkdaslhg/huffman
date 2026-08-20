@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+#include <stdexcept>
 #include <iterator>
 
 
@@ -22,7 +23,7 @@ void decompress(const std::string& file_path, const std::string& output_path) {
         unsigned long long count = 0;
         for (int j = 7; j >= 0; j--) {
             const char byte = header[i * 8 + j];
-            count = count << 8 | byte;
+            count = count << 8 | static_cast<unsigned char>(byte);
         }
         counts[i] = count;
     }
@@ -32,11 +33,14 @@ void decompress(const std::string& file_path, const std::string& output_path) {
         unsigned long long byte_count = 0;
         std::vector<char> buffer(1024, static_cast<char>(root->byte_value));
         while (byte_count < byte_total) {
-            if (byte_total - byte_count >= 1024)
+            if (byte_total - byte_count >= 1024) {
                 output.write(buffer.data(), 1024);
+                byte_count = byte_count + 1024;
+            }
             else {
                 std::vector<char> left(byte_total - byte_count, static_cast<char>(root->byte_value));
                 output.write(left.data(), static_cast<long long>(left.size()));
+                byte_count = byte_count + left.size();
             }
         }
         return;
@@ -47,7 +51,7 @@ void decompress(const std::string& file_path, const std::string& output_path) {
     std::vector<char> buffer(1024);
     long long buffer_count = 0;
     unsigned long long byte_count = 0;
-    while (iterator != end_of_file) {
+    while (iterator != end_of_file && byte_count < byte_total) {
         unsigned char byte = *iterator;
         ++iterator;
         for (int i = 0; i < 8; i++) {
@@ -64,8 +68,6 @@ void decompress(const std::string& file_path, const std::string& output_path) {
                     output.write(buffer.data(), buffer_count);
                     buffer_count = 0;
                 }
-                if (byte_count == byte_total)
-                    break;
             }
         }
     }
