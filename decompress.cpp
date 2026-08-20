@@ -15,17 +15,18 @@ std::string decompress(const std::string& file_path, const std::string& output_p
     if (std::string(identifier) != "HUFFMAN")
         throw std::runtime_error("Not compressed file");
     // 读取密码并核对
-    char password_array[password.length()];
-    input.read(password_array, static_cast<long long>(password.length()));
+    std::vector<char> password_array(password.length());
+    input.read(&password_array[0], static_cast<long long>(password.length()));
+    password_array.push_back('\0');
     input.read(identifier, 8);
-    if (std::string(password_array) != password || std::string(identifier) != "HUFFMAN")
+    if (std::string(password_array.begin(), password_array.end()) != password || std::string(identifier) != "HUFFMAN")
         throw std::runtime_error("Password is incorrect");
     // 读取文件后缀
     int extension_length = input.get();
-    char extension_array[extension_length + 1];
-    input.read(extension_array, extension_length);
-    extension_array[extension_length] = '\0';
-    auto extension = std::string(extension_array);
+    std::vector<char> extension_array(extension_length);
+    input.read(&extension_array[0], extension_length);
+    extension_array.push_back('\0');
+    auto extension = std::string(extension_array.begin(), extension_array.end());
     // 读取原始文件字节总数
     unsigned long long byte_total = 0;
     char total[8];
@@ -91,6 +92,8 @@ std::string decompress(const std::string& file_path, const std::string& output_p
                     buffer_count = 0;
                 }
             }
+            if (byte_count == byte_total)
+                break;
         }
     }
     if (buffer_count > 0)
